@@ -1,15 +1,45 @@
 //Headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 //MACROS (constantes)
 
-//Funções auxiliares
+//Funções prototipos
+void telaTitulo();
 
 //Main
 void main() {
-    printf("Hello world!\n");
+    setlocale(LC_ALL,"");
+    telaTitulo();
+}
 
+
+//Funções auxiliares
+
+//Cria uma tela de título, óbvio (AM)
+//04/09 (AM): Eu vou tentar transformar essa função numa recursão.
+void telaTitulo() {
+    char *titulo[] = {
+        "___  ___      _ _   _       _ _                            ___  ___      _        _      _       _ ",
+        "|  \\/  |     | | | (_)     | (_)                           |  \\/  |     | |      (_)    (_)     | |",
+        "| .  . |_   _| | |_ _ _ __ | |_  ___ __ _  ___ __ _  ___   | .  . | __ _| |_ _ __ _  ___ _  __ _| |",
+        "| |\\/| | | | | | __| | '_ \\| | |/ __/ _` |/ __/ _` |/ _ \\  | |\\/| |/ _` | __| '__| |/ __| |/ _` | |",
+        "| |  | | |_| | | |_| | |_) | | | (_| (_| | (_| (_| | (_) | | |  | | (_| | |_| |  | | (__| | (_| | |",
+        "\\_|  |_/\\__,_|_|\\__|_| .__/|_|_|\\___\\__,_|\\___\\__,_|\\___/  \\_|  |_/\\__,_|\\__|_|  |_|\\___|_|\\__,_|_|",
+        "                     | |                                                                           ",
+        "                     |_|                                                                           "
+    };
+    int tamArray = sizeof(titulo)/sizeof(titulo[0]);
+
+    for(int i = 0; i < 10; i++) { printf("\n"); }
+    for(int i = 0; i < tamArray; i++) {
+        for(int j = 0; j < 10; j++) { printf(" "); }
+        printf("%s\n",titulo[i]);
+    }
+    for(int i = 0; i < 3; i++) { printf("\n"); }
+    for(int i = 0; i < 50; i++) { printf(" "); }
+    printf("<ENTER> para executar");
 }
 
 /*
