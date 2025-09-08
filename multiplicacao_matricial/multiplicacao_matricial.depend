@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1757302522 source:c:\users\andré mateus\documents\github\multiplicacao_matricial\multiplicacao_matricial\main.c
+	<stdio.h>
+	<stdlib.h>
+	<locale.h>
+	<conio.h>
+
