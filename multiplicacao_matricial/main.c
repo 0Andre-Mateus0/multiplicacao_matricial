@@ -64,37 +64,82 @@ void respostaEntreTextos(int coluna, int linha,int *resposta) {
 }
 
 //Pede as ordens das matrizes e, se forem compatíveis parte para a função que pede os números.
-int ordemMatrizes() {
-    int matrizAOrd1, matrizAOrd2, matrizBOrd1, matrizBOrd2;
+int ordemMatrizes(int *matrizAOrd1, int *matrizAOrd2, int *matrizBOrd1, int *matrizBOrd2) {
+    // ponteiro é um bicho escroto Deus me livre
+    int funcional = 1;
 
-    const char *instrucoesOrdens[] = {
-        "Por favor, digite as ordens das matrizes:",
-    }, *GUIOrdens[] = {
-        "  ___                  ______ ",
-        " / _ \\      __  __     | ___ \\",
-        "/ /_\\ \\     \\ \\/ /     | |_/ /",
-        "|  _  |      >  <      | ___ \\",
-        "| | | |     /_/\\_\\     | |_/ /",
-        "\\_| |_/  x             \\____/  x  "
-    };
+    while(funcional == 1) {
+        const char *instrucoesOrdens[] = {
+            "Por favor, digite as ordens das matrizes:",
+        }, *GUIOrdens[] = {
+            "  ___                  ______ ",
+            " / _ \\      __  __     | ___ \\",
+            "/ /_\\ \\     \\ \\/ /     | |_/ /",
+            "|  _  |      >  <      | ___ \\",
+            "| | | |     /_/\\_\\     | |_/ /",
+            "\\_| |_/  x             \\____/  x  "
+        };
 
-    desenharGUI(instrucoesOrdens,TAM_ARRAY(instrucoesOrdens),(configGUI){.espacY1 = 10, .espacX1 = 40, .espacY2 = 3});
-    desenharGUI(GUIOrdens,TAM_ARRAY(GUIOrdens),(configGUI){.espacX1 = 45, .espacY2 = 3});
-    respostaEntreTextos(53,20,&matrizAOrd1);
-    respostaEntreTextos(56,20,&matrizAOrd2);
-    respostaEntreTextos(75,20,&matrizBOrd1);
-    respostaEntreTextos(78,20,&matrizBOrd2);
 
+        desenharGUI(instrucoesOrdens,TAM_ARRAY(instrucoesOrdens),(configGUI){.espacY1 = 10, .espacX1 = 40, .espacY2 = 3});
+        desenharGUI(GUIOrdens,TAM_ARRAY(GUIOrdens),(configGUI){.espacX1 = 45, .espacY2 = 3});
+        respostaEntreTextos(53,20,&matrizAOrd1);
+        respostaEntreTextos(56,20,&matrizAOrd2);
+        respostaEntreTextos(75,20,&matrizBOrd1);
+        respostaEntreTextos(78,20,&matrizBOrd2);
+
+        if(*matrizAOrd2 == *matrizBOrd1) funcional = 0;
+        else {
+            funcional = 1;
+            printf("Essas Matrizes nao podem ser Multiplicadas, escolha outras!");
+            system("cls");
+        }
+    }
     printf("\n");
     for(int i = 0; i < 50; i++) printf(" ");
 }
 
+int definevalor(int ia, int ja, int ib, int jb, int MatA[ia][ja], int MatB[ib][jb]) {
+    for(int i = 0; i < ia; i++) {
+        for(int j = 0; j < ja; j++) {
+            printf("MatA[%d][%d]: ", i, j);
+            scanf("%d", &MatA[i][j]);
+            system("cls");
+        }
+    }
+    for(int i = 0; i < ib; i++) {
+        for(int j = 0; j < jb; j++) {
+            printf("MatB[%d][%d]: ", i, j);
+            scanf("%d", &MatB[i][j]);
+            system("cls");
+        }
+    }
+     mostrarmatrizes(ia, ja, ib, jb, MatA, MatB);
+}
+
+int mostrarmatrizes(int ia, int ja, int ib, int jb, int MatA[ia][ja], int MatB[ib][jb]) {
+    printf("MATRIZ A:");
+    for (int j = 0; j < ja; j++){
+        printf("\n");
+        for (int i = 0;i < ia; i++){
+            printf("%d ", MatA[i][j]);
+        }
+    }
+    printf("\nMATRIZ B:");
+    for (int j = 0; j < jb; j++){
+        printf("\n");
+        for (int i = 0;i < ib; i++){
+            printf("%d ", MatB[i][j]);
+        }
+    }
+}
 
 //Main
 void main() {
     setlocale(LC_ALL,"");
 
     //Variáveis
+    int ia,ja,ib,jb // linhas e colunas das matrizes A e B, respectivamente;
     const char *telaInicial[] = {
         "___  ___      _ _   _       _ _                            ___  ___      _        _      _       _ ",
         "|  \\/  |     | | | (_)     | (_)                           |  \\/  |     | |      (_)    (_)     | |",
@@ -112,10 +157,12 @@ void main() {
     getch();
     system("cls");
 
-    ordemMatrizes();
+    ordemMatrizes(&ia,&ja,&ib,&jb);
+    int MatA[ia][ja], MatB[ib][jb];
     printf("<ENTER> para continuar");
     getch();
     system("cls");
+    definevalor(ia, ja, ib, jb, MatA, MatB);
 }
 
 
