@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <conio.h>
-
-/*
-05/09(AM): Essa foi a melhor maneira que eu consegui para criar parâmetros opcionais. É mais legível e possui uma fácil manutenção.
-*/
+#include <limits.h>
+#include <unistd.h>
 
 //Estrutura para configuração do desenho da GUI
 typedef struct {
@@ -16,130 +14,58 @@ typedef struct {
     int espacX2; //Define o quâo à direita estará o que quer que seja.
 } configGUI;
 
+//Estrutura para armazenar o resultado da multiplicação com verificação de overflow
+typedef struct {
+    int** resultado;
+    int erro; // 0 = sem erro, 1 = overflow detectado
+} ResultadoMatriz;
+
 //MACROS (constantes)
-/*
-    05/09 (AM): Tive que criar esse macro pois pGUI é um ponteiro e se eu quisesse calcular internamente o tamanho do array eu teria que usar NULL para marcar o fim do array. E eu não tô com saco pra isso.
-*/
 //Macro para calcular tamanho.
 #define TAM_ARRAY(arr) (sizeof(arr)/sizeof((arr)[0]))
 //Valor padrão para configGUI (Nunca será usado :3 )
 #define CONFIG_PADRAO {0,0,0,0}
 
-/*
 //Funções prototipos
-//05/09 (AM): É obrigatório escrever aqui as funções auxliares, se não dá erro de declaração implícita.
-  05/09 (AM): Aparentemente eu estava enganado. Ops...
-void desenharGUI();
-int ordemMatrizes();
-*/
-
-//Funções auxiliares
-
-//Cria uma tela de título, óbvio (AM)
-//04/09 (AM): Eu vou tentar transformar essa função numa recursão.
-/*
-05/09 (AM): Não dá.
-      (AM): Eu vou tentar tornar essa função em uma função geral com parâmetros opcionais.
-      (AM): Eba!!
-*/
-void desenharGUI(const char *pGUI[], int tamArray, configGUI config) {
-    for(int i = 0; i < config.espacY1; i++) { printf("\n"); }
-    for(int i = 0; i < tamArray; i++) {
-        for(int j = 0; j < config.espacX1; j++) { printf(" "); }
-        printf("%s\n",pGUI[i]);
-    }
-    for(int i = 0; i < config.espacY2; i++) { printf("\n"); }
-    for(int i = 0; i < config.espacX2; i++) { printf(" "); }
-}
-
-//Pra fazer respostaEntreTextos funcionar :3
-void gotoxy(int x, int y) {
-    printf("\033[%d;%dH", y, x);
-}
-
-//Digitar resposta entre textos
-void respostaEntreTextos(int coluna, int linha,int *resposta) {
-    gotoxy(coluna,linha);
-    scanf("%d",resposta);
-}
-
-//Pede as ordens das matrizes e, se forem compatíveis parte para a função que pede os números.
-int ordemMatrizes(int *matrizAOrd1, int *matrizAOrd2, int *matrizBOrd1, int *matrizBOrd2) {
-    // ponteiro é um bicho escroto Deus me livre
-    int funcional = 1;
-
-    while(funcional == 1) {
-        const char *instrucoesOrdens[] = {
-            "Por favor, digite as ordens das matrizes:",
-        }, *GUIOrdens[] = {
-            "  ___                  ______ ",
-            " / _ \\      __  __     | ___ \\",
-            "/ /_\\ \\     \\ \\/ /     | |_/ /",
-            "|  _  |      >  <      | ___ \\",
-            "| | | |     /_/\\_\\     | |_/ /",
-            "\\_| |_/  x             \\____/  x  "
-        };
-
-
-        desenharGUI(instrucoesOrdens,TAM_ARRAY(instrucoesOrdens),(configGUI){.espacY1 = 10, .espacX1 = 40, .espacY2 = 3});
-        desenharGUI(GUIOrdens,TAM_ARRAY(GUIOrdens),(configGUI){.espacX1 = 45, .espacY2 = 3});
-        respostaEntreTextos(53,20,&matrizAOrd1);
-        respostaEntreTextos(56,20,&matrizAOrd2);
-        respostaEntreTextos(75,20,&matrizBOrd1);
-        respostaEntreTextos(78,20,&matrizBOrd2);
-
-        if(*matrizAOrd2 == *matrizBOrd1) funcional = 0;
-        else {
-            funcional = 1;
-            printf("Essas Matrizes nao podem ser Multiplicadas, escolha outras!");
-            system("cls");
-        }
-    }
-    printf("\n");
-    for(int i = 0; i < 50; i++) printf(" ");
-}
-
-int definevalor(int ia, int ja, int ib, int jb, int MatA[ia][ja], int MatB[ib][jb]) {
-    for(int i = 0; i < ia; i++) {
-        for(int j = 0; j < ja; j++) {
-            printf("MatA[%d][%d]: ", i, j);
-            scanf("%d", &MatA[i][j]);
-            system("cls");
-        }
-    }
-    for(int i = 0; i < ib; i++) {
-        for(int j = 0; j < jb; j++) {
-            printf("MatB[%d][%d]: ", i, j);
-            scanf("%d", &MatB[i][j]);
-            system("cls");
-        }
-    }
-     mostrarmatrizes(ia, ja, ib, jb, MatA, MatB);
-}
-
-int mostrarmatrizes(int ia, int ja, int ib, int jb, int MatA[ia][ja], int MatB[ib][jb]) {
-    printf("MATRIZ A:");
-    for (int j = 0; j < ja; j++){
-        printf("\n");
-        for (int i = 0;i < ia; i++){
-            printf("%d ", MatA[i][j]);
-        }
-    }
-    printf("\nMATRIZ B:");
-    for (int j = 0; j < jb; j++){
-        printf("\n");
-        for (int i = 0;i < ib; i++){
-            printf("%d ", MatB[i][j]);
-        }
-    }
-}
+void telaTitulo();
+void desenharGUI(const char *pGUI[], int tamArray, configGUI config);
+void gotoxy(int y, int x);
+void respostaEntreTextos(int coluna, int linha, int *resposta);
+void ordemMatrizes(int *matrizAOrd1, int *matrizAOrd2, int *matrizBOrd1, int *matrizBOrd2);
+void defineValor(int *Ai, int *Aj, int *Bi, int *Bj);
+void desenhaMatriz(int inicioX, int incioY, int linhas, int colunas, const char* nome);
+void preencheMatriz(int inicioX, int incioY, int linhas, int colunas, int** matriz);
+ResultadoMatriz multiplicarMatrizesRecursivo(int** A, int** B, int** C, int i, int j, int k, int n, int p, int m);
+ResultadoMatriz multiplicarMatrizes(int** A, int** B, int n, int p, int m);
+void mostrarResultado(ResultadoMatriz resultado, int n, int m);
 
 //Main
 void main() {
     setlocale(LC_ALL,"");
 
     //Variáveis
-    int ia,ja,ib,jb // linhas e colunas das matrizes A e B, respectivamente;
+    int ia, ja, ib, jb;
+
+    //Desenha a tela de título
+    telaTitulo();
+    ordemMatrizes(&ia, &ja, &ib, &jb);
+    defineValor(&ia, &ja, &ib, &jb);
+}
+
+//Funções auxiliares
+
+//Cria uma interface(AM)
+void desenharGUI(const char *pGUI[], int tamArray, configGUI config) {
+    for(int i = 0; i < config.espacY1; i++) { printf("\n"); }
+    for(int i = 0; i < tamArray; i++) {
+        for(int j = 0; j < config.espacX1; j++) { printf(" "); }
+        printf("%s\n", pGUI[i]);
+    }
+    for(int i = 0; i < config.espacY2; i++) { printf("\n"); }
+    for(int i = 0; i < config.espacX2; i++) { printf(" "); }
+}
+
+void telaTitulo() {
     const char *telaInicial[] = {
         "___  ___      _ _   _       _ _                            ___  ___      _        _      _       _ ",
         "|  \\/  |     | | | (_)     | (_)                           |  \\/  |     | |      (_)    (_)     | |",
@@ -151,41 +77,267 @@ void main() {
         "                     |_|                                                                           "
     };
 
-    //Desenha a tela de título
-    desenharGUI(telaInicial,TAM_ARRAY(telaInicial),(configGUI){.espacY1 = 10, .espacX1 = 10, .espacY2 = 3, .espacX2 = 50});
+    desenharGUI(telaInicial, TAM_ARRAY(telaInicial), (configGUI){.espacY1 = 10, .espacX1 = 10, .espacY2 = 3, .espacX2 = 50});
     printf("<ENTER> para executar");
     getch();
     system("cls");
-
-    ordemMatrizes(&ia,&ja,&ib,&jb);
-    int MatA[ia][ja], MatB[ib][jb];
-    printf("<ENTER> para continuar");
-    getch();
-    system("cls");
-    definevalor(ia, ja, ib, jb, MatA, MatB);
 }
 
+//Pede as ordens das matrizes e, se forem compatíveis parte para a função que pede os números.
+void ordemMatrizes(int *matrizAOrd1, int *matrizAOrd2, int *matrizBOrd1, int *matrizBOrd2) {
+    const char *instrucoesOrdens[] = {
+        "Por favor, digite as ordens das matrizes:",
+    }, *GUIOrdens[] = {
+        "  ___                  ______ ",
+        " / _ \\      __  __     | ___ \\",
+        "/ /_\\ \\     \\ \\/ /     | |_/ /",
+        "|  _  |      >  <      | ___ \\",
+        "| | | |     /_/\\_\\     | |_/ /",
+        "\\_| |_/  x             \\____/  x  "
+    }, *avisoErro[] = {
+        "Condição para multiplição matricial não foi atendida.",
+        "<ENTER> para escolher outras ordens."
+    };
 
+    int validade = 0;
 
+    while(!validade) {
+        system("cls");
+        desenharGUI(instrucoesOrdens, TAM_ARRAY(instrucoesOrdens), (configGUI){.espacY1 = 10, .espacX1 = 40, .espacY2 = 3});
+        desenharGUI(GUIOrdens, TAM_ARRAY(GUIOrdens), (configGUI){.espacX1 = 45, .espacY2 = 3});
+        respostaEntreTextos(20, 53, matrizAOrd1);
+        respostaEntreTextos(20, 56, matrizAOrd2);
+        respostaEntreTextos(20, 75, matrizBOrd1);
+        respostaEntreTextos(20, 78, matrizBOrd2);
+        printf("\n");
 
-/*
-                    Instruções gerais
-                    por: André Mateus
+        if(*matrizAOrd2 != *matrizBOrd1) {
+            desenharGUI(avisoErro, TAM_ARRAY(avisoErro), (configGUI){.espacY1 = 2, .espacX1 = 40, .espacY2 = 3});
+            getch();
+        }
+        else {
+            validade = 1;
+            for(int i = 0; i < 50; i++) { printf(" "); }
+            printf("<ENTER> para continuar");
+            getch();
+            system("cls");
+        }
+    }
+}
 
-  1. Tela onde é pedida do usuário as ordens das
-     matrizes.
+//Desenha a matriz na tela
+void desenhaMatriz(int inicioX, int incioY, int linhas, int colunas, const char* nome) {
+    //Desenhar nome da matriz
+    gotoxy(inicioX, incioY);
+    for(int i = 0; i < 50; i++) { printf(" "); }
+    printf("%s:", nome);
 
-  2. Caso a condição de multiplicação matricial
-     não for atendida: 2.1; caso contrário: 3;
+    int larguraCel = 6; //Largura de cada célula
 
-    2.1. Tela avisando ao usuário que dá erro e
-         possui duas opções: o usuário pôr outros
-         números como ordem ou sair.
+    //Desenhar borda superior
+    gotoxy(inicioX, incioY + 1);
+    printf("+");
+    for (int j = 0; j < colunas; j++) {
+        for (int k = 0; k < larguraCel - 1; k++) {
+            printf("-");
+        }
+        printf("+");
+    }
 
-  3. Pergunta se o usuário se ele quer esoolher
-     manualmente os números ou pseudoaleatório.
+    //Desenhar linhas internas e células
+    for (int i = 0; i < linhas; i++) {
+        //Linha de células vazias
+        gotoxy(inicioX, incioY + 2 + i * 2);
+        printf("|");
+        for (int j = 0; j < colunas; j++) {
+            printf("%*s", larguraCel - 1, " "); //Espaço vazio
+            printf("|");
+        }
 
-  4. Finalizada a multiplicação, pergunta se o usuário
-     quer refazer com outros números ou sair.
+        //Linha separadora (sempre, inclusive após a última linha)
+        gotoxy(inicioX, incioY + 3 + i * 2);
+        printf("+");
+        for (int j = 0; j < colunas; j++) {
+            for (int k = 0; k < larguraCel - 1; k++) {
+                printf("-");
+            }
+            printf("+");
+        }
+    }
+}
 
-*/
+//Função para preencher matriz interativamente
+void preencheMatriz(int inicioX, int incioY, int linhas, int colunas, int** matriz) {
+    int larguraCel = 6;
+
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+            //Posicionar cursor no centro da célula
+            int x = inicioX + 2 + j * larguraCel;
+            int y = incioY + 2 + i * 2;
+
+            respostaEntreTextos(y, x, &matriz[i][j]);
+
+            //Mostrar valor digitado
+            gotoxy(x, y);
+            printf("%4d", matriz[i][j]);
+        }
+    }
+}
+
+// Função recursiva para multiplicação de matrizes com verificação de overflow
+ResultadoMatriz multiplicarMatrizesRecursivo(int** A, int** B, int** C, int i, int j, int k, int n, int p, int m) {
+    ResultadoMatriz resultado;
+    resultado.erro = 0;
+
+    //Caso base: percorremos todas as linhas
+    if (i >= n) {
+        resultado.resultado = C;
+        return resultado;
+    }
+
+    // aso base: percorremos todas as colunas da linha atual
+    if (j >= m) {
+        // Avançar para a próxima linha, primeira coluna
+        return multiplicarMatrizesRecursivo(A, B, C, i + 1, 0, 0, n, p, m);
+    }
+
+    //Caso base: percorremos todos os elementos da soma atual
+    if (k >= p) {
+        // Verificar se o resultado final cabe em int
+        if (C[i][j] > INT_MAX || C[i][j] < INT_MIN) {
+            resultado.erro = 1;
+            return resultado;
+        }
+        //Avançar para a próxima coluna, primeiro elemento de soma
+        return multiplicarMatrizesRecursivo(A, B, C, i, j + 1, 0, n, p, m);
+    }
+
+    //Verificar overflow na multiplicação do elemento atual
+    long long produto = (long long)A[i][k] * (long long)B[k][j];
+    if (A[i][k] != 0 && produto / A[i][k] != B[k][j]) {
+        resultado.erro = 1;
+        return resultado;
+    }
+
+    //Verificar overflow na soma acumulada
+    long long soma_atual = (long long)C[i][j];
+    if ((produto > 0 && soma_atual > LLONG_MAX - produto) ||
+        (produto < 0 && soma_atual < LLONG_MIN - produto)) {
+        resultado.erro = 1;
+        return resultado;
+    }
+
+    //Atualizar o valor da célula
+    C[i][j] += (int)produto;
+
+    //Chamada recursiva para o próximo elemento da soma
+    return multiplicarMatrizesRecursivo(A, B, C, i, j, k + 1, n, p, m);
+}
+
+//Função wrapper para iniciar a recursão
+ResultadoMatriz multiplicarMatrizes(int** A, int** B, int n, int p, int m) {
+    int** C = malloc(n * sizeof(int*));
+    for (int i = 0; i < n; i++) {
+        C[i] = calloc(m, sizeof(int)); //Inicializar com zeros
+    }
+
+    ResultadoMatriz resultado = multiplicarMatrizesRecursivo(A, B, C, 0, 0, 0, n, p, m);
+
+    if (resultado.erro) {
+        //Liberar memória em caso de erro
+        for (int i = 0; i < n; i++) free(C[i]);
+        free(C);
+        resultado.resultado = NULL;
+    }
+
+    return resultado;
+}
+
+//Mostrar o resultado da multiplicação
+void mostrarResultado(ResultadoMatriz resultado, int n, int m) {
+    system("cls");
+
+    if (resultado.erro) {
+        printf("ERRO: Overflow detectado durante a multiplicação!\n");
+        printf("Os valores excedem a capacidade de armazenamento.\n");
+    } else if (resultado.resultado == NULL) {
+        printf("ERRO: Não foi possível calcular a multiplicação.\n");
+    } else {
+        desenhaMatriz(2, 3, n, m, "Matriz Resultante");
+
+        // Mostrar valores da matriz resultante
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                gotoxy(2 + 2 + j * 6, 3 + 2 + i * 2);
+                printf("%4d", resultado.resultado[i][j]);
+            }
+        }
+    }
+
+    gotoxy(2, 3 + n * 2 + 2);
+    for(int i = 0; i < 50; i++) { printf(" "); }
+    printf("<ENTER> para finalizar");
+    getchar(); // Limpar buffer
+    getchar(); // Esperar enter
+}
+
+void defineValor(int *Ai, int *Aj, int *Bi, int *Bj) {
+    //Alocar matrizes
+    int **MatA = malloc(*Ai * sizeof(int*));
+    int **MatB = malloc(*Bi * sizeof(int*));
+
+    for (int i = 0; i < *Ai; i++) MatA[i] = malloc(*Aj * sizeof(int));
+    for (int i = 0; i < *Bi; i++) MatB[i] = malloc(*Bj * sizeof(int));
+
+    //TELA 1: Matriz A
+    system("cls");
+    desenhaMatriz(2, 3, *Ai, *Aj, "Matriz A");
+
+    //Preencher matriz A
+    gotoxy(2, 2);
+    preencheMatriz(2, 3, *Ai, *Aj, MatA);
+
+    //Mensagem de transição
+    gotoxy(2, 3 + *Ai * 2 + 2);
+    for(int i = 0; i < 45; i++) { printf(" "); }
+    printf("<ENTER> para preencher a Matriz B");
+    getchar(); //Limpar buffer
+    getchar(); //Esperar enter
+
+    //TELA 2: Matriz B
+    system("cls");
+    desenhaMatriz(2, 3, *Bi, *Bj, "Matriz B");
+
+    //Preencher matriz B
+    gotoxy(2, 2);
+    preencheMatriz(2, 3, *Bi, *Bj, MatB);
+
+    //Multiplicar as matrizes
+    ResultadoMatriz resultado = multiplicarMatrizes(MatA, MatB, *Ai, *Aj, *Bj);
+
+    //Mostrar resultado
+    mostrarResultado(resultado, *Ai, *Bj);
+
+    //Liberar memória
+    for (int i = 0; i < *Ai; i++) free(MatA[i]);
+    free(MatA);
+    for (int i = 0; i < *Bi; i++) free(MatB[i]);
+    free(MatB);
+
+    if (resultado.resultado != NULL) {
+        for (int i = 0; i < *Ai; i++) free(resultado.resultado[i]);
+        free(resultado.resultado);
+    }
+}
+
+//Pra fazer respostaEntreTextos funcionar :3
+void gotoxy(int x, int y) {
+    printf("\033[%d;%dH", y, x);
+}
+
+//Digitar resposta entre textos
+void respostaEntreTextos(int linha, int coluna, int *resposta) {
+   gotoxy(coluna, linha);
+    scanf("%d", resposta);
+}
